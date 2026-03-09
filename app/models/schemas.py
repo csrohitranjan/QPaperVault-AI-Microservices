@@ -68,10 +68,15 @@ class RepeatedQuestionsResponse(BaseModel):
 # Response Models — Feature 2: Topic Weightage
 # ──────────────────────────────────────────────
 class TopicWeightage(BaseModel):
-    """Represents the exam weightage of a single topic."""
+    """Represents the enhanced exam weightage of a single topic."""
     topicName: str
     occurrenceCount: int
     weightage: str  # e.g. "25.5%"
+    trend: str = "Stable"      # e.g. "Rising", "Stable", "Falling"
+    difficulty: str = "Moderate"  # e.g. "Easy", "Moderate", "Hard"
+    priority: int = 3    # 1-5 (1 = Highest)
+    keyConcepts: List[str] = Field(default_factory=list)
+    sampleQuestions: List[str] = Field(default_factory=list)
 
 class TopicAnalysisResponse(BaseModel):
     """Response for the topic weightage analysis endpoint."""

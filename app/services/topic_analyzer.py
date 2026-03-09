@@ -41,44 +41,56 @@ async def analyze_topics_from_questions(
     
     logger.info(f"Starting topic weightage analysis for {len(papers_data)} papers...")
 
-    # Build a flat list of all questions
-    all_questions = []
+    # Build a structured block of questions categorized by year/month for trend analysis
+    structured_questions = ""
     for paper in papers_data:
+        paper_header = f"\n--- {paper.get('month', 'Unknown')} {paper.get('year', 'Unknown')} ---\n"
+        structured_questions += paper_header
         for q in paper.get("questions", []):
             if isinstance(q, dict):
                 text = q.get("questionText", "")
             else:
                 text = getattr(q, "questionText", "")
             if text:
-                all_questions.append(text)
+                structured_questions += f"- {text}\n"
 
-    if not all_questions:
+    if not structured_questions:
         logger.warning("No readable question text found.")
         return []
 
-    questions_block = "\n".join([f"- {q}" for q in all_questions])
+    prompt = f"""You are an elite academic data scientist.
+Below is a chronological list of exam questions extracted from several years of the same subject.
 
-    prompt = f"""You are an expert academic analysis system.
-Below is a list of exam questions extracted from multiple years of the same subject.
+YOUR MISSION:
+Perform a deep "Exam Blueprint DNA" analysis. Categorize questions into core topics and extract high-value metadata for each.
 
-YOUR TASK:
-1. Identify the core academic TOPICS/CHAPTERS these questions belong to.
-2. Categorize every single question into ONE of these topics.
-3. Count how many questions belong to each topic.
-4. Provide the result as a list of topics with their counts.
+CHRONOLOGICAL QUESTIONS:
+{structured_questions}
+
+OUTPUT REQUIREMENTS (JSON Array of Objects):
+1. 'topicName': Professional academic name (e.g., 'Concurrency & Multithreading').
+2. 'occurrenceCount': Total count across all provided papers.
+3. 'trend': Analyze frequency over the years. Is it 'Rising', 'Stable', or 'Falling'?
+4. 'difficulty': Overall complexity of questions in this topic ('Easy', 'Moderate', 'Hard').
+5. 'priority': Study priority (1-5, where 1 is "Must-Read / High Yield").
+6. 'keyConcepts': Top 3-5 specific sub-concepts or technical keywords.
+7. 'sampleQuestions': 2-3 short, representative questions from the provided list.
 
 RULES:
-- Limit the number of topics to between 5 and 10 to keep it concise.
-- Use professional academic names for topics (e.g., 'Tree Data Structures' not just 'Trees').
+- Limit to 6-10 most significant topics.
+- Ensure 'weightage' can be calculated from 'occurrenceCount'.
+- Return ONLY valid JSON.
 
-QUESTIONS:
-{questions_block}
-
-Return ONLY a valid JSON array:
+JSON FORMAT EXAMPLE:
 [
   {{
-    "topicName": "Name of the Topic",
-    "occurrenceCount": 12
+    "topicName": "Memory Management",
+    "occurrenceCount": 15,
+    "trend": "Rising",
+    "difficulty": "Hard",
+    "priority": 1,
+    "keyConcepts": ["Garbage Collection", "Heap vs Stack", "Memory Leaks"],
+    "sampleQuestions": ["Explain the lifecycle of an object in Java.", "What is the difference between Heap and Stack?"]
   }}
 ]"""
 
@@ -103,14 +115,19 @@ Return ONLY a valid JSON array:
                     TopicWeightage(
                         topicName=item.get("topicName", "Unknown"),
                         occurrenceCount=count,
-                        weightage=f"{percentage:.1f}%"
+                        weightage=f"{percentage:.1f}%",
+                        trend=item.get("trend", "Stable"),
+                        difficulty=item.get("difficulty", "Moderate"),
+                        priority=item.get("priority", 3),
+                        keyConcepts=item.get("keyConcepts", []),
+                        sampleQuestions=item.get("sampleQuestions", [])
                     )
                 )
 
             final_topics.sort(key=lambda t: t.occurrenceCount, reverse=True)
             
             duration = (datetime.now() - start_time).total_seconds()
-            logger.info(f"Topic analysis complete! Identified {len(final_topics)} topics in {duration:.1f}s.")
+            logger.info(f"Enhanced topic analysis complete! Identified {len(final_topics)} topics in {duration:.1f}s.")
             
             return final_topics
 
