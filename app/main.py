@@ -37,10 +37,11 @@ async def health_check():
         "version": settings.APP_VERSION,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "features": [
-            "Repeated Question Detection",
-            "Topic Weightage Analysis",
-            "Stratified Mock Test Generation",
-            "Smart Study Notes Generator"
+            "Smart Pattern Finder",
+            "Exam Blueprint DNA",
+            "Predictive AI Mock Test",
+            "Emergency Pass Master",
+            "AI Masterclass Notes"
         ]
     }
 
