@@ -30,7 +30,7 @@ async def _call_gemini_with_retry(model, prompt, max_retries=None):
                 logger.error(f"Gemini failed after {retries} attempts: {e}")
                 return None
 
-async def generate_revision_ranking(paper_code: str, available_hours: int = 4):
+async def generate_revision_ranking(paper_code: str, available_hours: int = 4, token: str = None):
     """
     Orchestrates the creation of an advanced urgency-based revision ranking.
     This is a 'One-Stop' revision suite for students.
@@ -38,7 +38,7 @@ async def generate_revision_ranking(paper_code: str, available_hours: int = 4):
     logger.info(f"⏳ Generating ADVANCED Last Night Revision Ranking for {paper_code} ({available_hours}h available)")
     
     # 1. Get current papers and fingerprint
-    papers = await fetch_papers_by_code(paper_code)
+    papers = await fetch_papers_by_code(paper_code, token)
     if not papers:
         return None, None
     fingerprint = generate_paper_fingerprint(papers)

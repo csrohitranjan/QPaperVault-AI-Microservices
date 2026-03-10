@@ -1,28 +1,30 @@
 import asyncio
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 from app.models.schemas import StudyNotesRequest, StudyNotesResponse
 from app.services.paper_fetcher import fetch_papers_by_code
 from app.services.study_notes_generator import generate_study_notes
 from app.database.mongodb import db, generate_paper_fingerprint
 from app.logger import get_logger
+from app.dependencies.auth import get_current_user
 
 router = APIRouter()
 logger = get_logger("study_notes_router")
 
 @router.post("/study-notes", response_model=StudyNotesResponse)
-async def get_study_notes(request: StudyNotesRequest):
+async def get_study_notes(request: StudyNotesRequest, auth_data: dict = Depends(get_current_user)):
     """
     Endpoint for Feature #5: Smart Study Notes Generator (Enhanced).
     Generates topic-wise study notes with model answers, predicted questions,
     and exam strategies using data from Features 1, 2, and Layer 1.
     """
     start_time = datetime.now()
+    token = auth_data["token"]
     logger.info(f"🚀 Request for Study Notes: {request.paperCode}")
 
     # 1. Fetch papers & fingerprint
     try:
-        papers = await fetch_papers_by_code(request.paperCode)
+        papers = await fetch_papers_by_code(request.paperCode, token)
     except Exception as e:
         logger.error(f"Failed to fetch papers for {request.paperCode}: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch question papers.")
@@ -40,7 +42,7 @@ async def get_study_notes(request: StudyNotesRequest):
         return StudyNotesResponse(**cached_result["result_data"])
 
     # 3. Generate New Study Notes
-    notes_data, dna_fingerprint, paper_count = await generate_study_notes(request.paperCode)
+    notes_data, dna_fingerprint, paper_count = await generate_study_notes(request.paperCode, token)
     if not notes_data:
         raise HTTPException(status_code=500, detail="Failed to generate study notes. Ensure Features 1 & 2 have been run.")
 

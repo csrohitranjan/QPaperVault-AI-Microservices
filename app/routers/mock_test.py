@@ -1,27 +1,29 @@
 import asyncio
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 from app.models.schemas import MockTestRequest, MockTestResponse
 from app.services.paper_fetcher import fetch_papers_by_code
 from app.services.mock_generator import generate_stratified_mock_test
 from app.database.mongodb import db, generate_paper_fingerprint
 from app.logger import get_logger
+from app.dependencies.auth import get_current_user
 
 router = APIRouter()
 logger = get_logger("mock_test_router")
 
 @router.post("/generate-mock-test", response_model=MockTestResponse)
-async def generate_mock_test(request: MockTestRequest):
+async def generate_mock_test(request: MockTestRequest, auth_data: dict = Depends(get_current_user)):
     """
     Endpoint for Feature #3: Stratified Mock Test Generation.
     Uses Layered Cache and Exam DNA.
     """
     start_time = datetime.now()
+    token = auth_data["token"]
     logger.info(f"🚀 Request for Mock Test: {request.paperCode}")
 
     # 1. Fetch papers & fingerprint
     try:
-        papers = await fetch_papers_by_code(request.paperCode)
+        papers = await fetch_papers_by_code(request.paperCode, token)
     except Exception as e:
         logger.error(f"Failed to fetch papers for {request.paperCode}: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch question papers.")
@@ -39,7 +41,7 @@ async def generate_mock_test(request: MockTestRequest):
         return MockTestResponse(**cached_result["result_data"])
 
     # 3. Generate New Mock Test
-    result = await generate_stratified_mock_test(request.paperCode, request.totalMarks)
+    result = await generate_stratified_mock_test(request.paperCode, request.totalMarks, token)
     if not result:
         raise HTTPException(status_code=400, detail="Topic DNA analysis not found for this subject. Please run Topic Weightage analysis first.")
     

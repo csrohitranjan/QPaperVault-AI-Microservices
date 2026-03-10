@@ -32,6 +32,10 @@ class Settings:
     # ── CORS ──
     CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "*")
 
+    # ── JWT Authentication ──
+    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "")
+    JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+
     @property
     def cors_origin_list(self):
         """Parse comma-separated CORS origins into a list."""

@@ -1,5 +1,5 @@
 import asyncio
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 
 from app.models.schemas import TopicAnalysisRequest, TopicAnalysisResponse, PaperInfo
@@ -8,22 +8,24 @@ from app.services.paper_processor import process_single_paper
 from app.services.topic_analyzer import analyze_topics_from_questions
 from app.database.mongodb import db, generate_paper_fingerprint
 from app.logger import get_logger
+from app.dependencies.auth import get_current_user
 
 router = APIRouter()
 logger = get_logger("topic_weightage_router")
 
 @router.post("/topic-weightage", response_model=TopicAnalysisResponse)
-async def get_topic_weightage(request: TopicAnalysisRequest):
+async def get_topic_weightage(request: TopicAnalysisRequest, auth_data: dict = Depends(get_current_user)):
     """
     Endpoint for Feature #2: Topic Weightage Analysis.
     Smart implementation: Reuses cached OCR data from Feature 1 if available.
     """
     start_time = datetime.now()
+    token = auth_data["token"]
     logger.info(f"🚀 Starting topic analysis for paperCode: {request.paperCode}")
 
     # 1. Fetch papers & generate fingerprint
     try:
-        papers = await fetch_papers_by_code(request.paperCode)
+        papers = await fetch_papers_by_code(request.paperCode, token)
     except Exception as e:
         logger.error(f"Failed to fetch papers for {request.paperCode}: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch question papers.")

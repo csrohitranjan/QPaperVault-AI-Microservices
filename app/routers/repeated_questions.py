@@ -1,9 +1,10 @@
 import asyncio
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 
 from app.models.schemas import RepeatedQuestionsRequest, RepeatedQuestionsResponse, PaperInfo
 from app.services.paper_fetcher import fetch_papers_by_code
+from app.dependencies.auth import get_current_user
 from app.services.paper_processor import process_single_paper
 from app.services.similarity_analyzer import analyze_similar_questions
 from app.logger import get_logger
@@ -13,18 +14,19 @@ router = APIRouter()
 logger = get_logger("repeated_questions_router")
 
 @router.post("/repeated-questions", response_model=RepeatedQuestionsResponse)
-async def get_repeated_questions(request: RepeatedQuestionsRequest):
+async def get_repeated_questions(request: RepeatedQuestionsRequest, auth_data: dict = Depends(get_current_user)):
     """
     Feature #1: Repeated Question Detection with Two-Layer Caching.
     Layer 2: Instant Feature Result
     Layer 1: Permanent Paper Library
     """
     start_time = datetime.now()
+    token = auth_data["token"]
     logger.info(f"🚀 Request for {request.paperCode}")
 
     # 1. Fetch papers & generate fingerprint
     try:
-        papers = await fetch_papers_by_code(request.paperCode)
+        papers = await fetch_papers_by_code(request.paperCode, token)
     except Exception as e:
         logger.error(f"Failed to fetch papers for {request.paperCode}: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch question papers.")

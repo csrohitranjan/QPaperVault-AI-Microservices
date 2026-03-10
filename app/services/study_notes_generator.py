@@ -30,7 +30,7 @@ async def _call_gemini_with_retry(model, prompt, max_retries=None):
                 logger.error(f"Gemini failed after {retries} attempts: {e}")
                 return None
 
-async def generate_study_notes(paper_code: str):
+async def generate_study_notes(paper_code: str, token: str = None):
     """
     Generates comprehensive, topic-wise study notes by combining:
     1. Topic Weightage (Feature 2) — to know WHAT to focus on
@@ -41,7 +41,7 @@ async def generate_study_notes(paper_code: str):
     logger.info(f"📖 Generating Smart Study Notes for {paper_code}")
     
     # 1. Get current papers and fingerprint
-    papers = await fetch_papers_by_code(paper_code)
+    papers = await fetch_papers_by_code(paper_code, token)
     if not papers:
         return None, None, 0
     

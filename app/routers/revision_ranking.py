@@ -1,27 +1,29 @@
 import asyncio
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 from app.models.schemas import RevisionRankingRequest, RevisionRankingResponse
 from app.services.paper_fetcher import fetch_papers_by_code
 from app.services.revision_ranking_service import generate_revision_ranking
 from app.database.mongodb import db, generate_paper_fingerprint
 from app.logger import get_logger
+from app.dependencies.auth import get_current_user
 
 router = APIRouter()
 logger = get_logger("revision_ranking_router")
 
 @router.post("/revision-ranking", response_model=RevisionRankingResponse)
-async def get_revision_ranking(request: RevisionRankingRequest):
+async def get_revision_ranking(request: RevisionRankingRequest, auth_data: dict = Depends(get_current_user)):
     """
     Advanced Endpoint for Feature #4: One-Stop Revision Suite.
     Provides ranking, fast answers, diagrams, and pass-guarantee path.
     """
     start_time = datetime.now()
+    token = auth_data["token"]
     logger.info(f"🚀 Request for Advanced Revision Guide: {request.paperCode} ({request.availableHours}h)")
 
     # 1. Fetch papers & fingerprint
     try:
-        papers = await fetch_papers_by_code(request.paperCode)
+        papers = await fetch_papers_by_code(request.paperCode, token)
     except Exception as e:
         logger.error(f"Failed to fetch papers for {request.paperCode}: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch question papers.")
@@ -40,7 +42,7 @@ async def get_revision_ranking(request: RevisionRankingRequest):
         return RevisionRankingResponse(**cached_result["result_data"])
 
     # 3. Generate New Ranking
-    ranking_data, dna_fingerprint = await generate_revision_ranking(request.paperCode, request.availableHours)
+    ranking_data, dna_fingerprint = await generate_revision_ranking(request.paperCode, request.availableHours, token)
     if not ranking_data:
         raise HTTPException(status_code=500, detail="Failed to generate advanced revision ranking.")
 

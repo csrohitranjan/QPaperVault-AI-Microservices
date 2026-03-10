@@ -30,7 +30,7 @@ async def _call_gemini_with_retry(model, prompt, max_retries=None):
                 logger.error(f"Gemini failed after {retries} attempts: {e}")
                 return None
 
-async def generate_stratified_mock_test(paper_code: str, total_marks: int = 100):
+async def generate_stratified_mock_test(paper_code: str, total_marks: int = 100, token: str = None):
     """
     Orchestrates the creation of a mock test based on 'Exam DNA'.
     Auto-triggers Feature #2 (Topic Weightage) if not cached.
@@ -38,7 +38,7 @@ async def generate_stratified_mock_test(paper_code: str, total_marks: int = 100)
     logger.info(f"🎨 Generating Mock Test for {paper_code} ({total_marks} marks)")
     
     # 1. Get current papers and fingerprint
-    papers = await fetch_papers_by_code(paper_code)
+    papers = await fetch_papers_by_code(paper_code, token)
     if not papers:
         return None
     fingerprint = generate_paper_fingerprint(papers)

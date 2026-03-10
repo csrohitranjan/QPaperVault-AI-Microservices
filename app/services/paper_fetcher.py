@@ -4,7 +4,7 @@ from app.config import settings
 from app.models.schemas import PaperInfo
 
 
-async def fetch_papers_by_code(paper_code: str) -> list[PaperInfo]:
+async def fetch_papers_by_code(paper_code: str, token: str = None) -> list[PaperInfo]:
     """
     Fetch all approved question papers from the existing PYQ API and
     filter by the given paper code.
@@ -20,9 +20,10 @@ async def fetch_papers_by_code(paper_code: str) -> list[PaperInfo]:
         ValueError: If no papers are found for the given code.
     """
     url = settings.PYQ_APPROVED_PAPERS_URL
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
 
     async with httpx.AsyncClient(timeout=settings.API_REQUEST_TIMEOUT) as client:
-        response = await client.get(url)
+        response = await client.get(url, headers=headers)
         response.raise_for_status()
 
     data = response.json()
