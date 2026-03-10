@@ -17,7 +17,7 @@ class Settings:
     GEMINI_RETRY_DELAY: int = int(os.getenv("GEMINI_RETRY_DELAY", "2"))
 
     # ── PYQ Backend API ──
-    PYQ_APPROVED_PAPERS_URL: str = os.getenv("PYQ_APPROVED_PAPERS_URL", "https://api.rohitranjan.in/api/v1/questionPaper/getApprovedQuestionPapers")
+    PYQ_APPROVED_PAPERS_URL: str = os.getenv("PYQ_APPROVED_PAPERS_URL", "http://localhost:8200/api/v1/questionPaper/getApprovedQuestionPapers")
 
     # ── MongoDB ──
     MONGODB_URL: str = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
