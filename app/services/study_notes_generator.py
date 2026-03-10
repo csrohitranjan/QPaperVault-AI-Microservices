@@ -123,77 +123,81 @@ async def create_notes_with_gemini(paper_name: str, topics: List[Dict], repeated
         })
     
     prompt = f"""
-    You are an expert professor creating the ULTIMATE STUDY GUIDE for "{paper_name}".
-    Your notes must help a student go from zero preparation to exam-ready.
+    You are an expert professor and subject matter expert creating the ABSOLUTE DEFINITIVE MASTERCLASS STUDY GUIDE for "{paper_name}".
     
-    === DATA FROM PREVIOUS YEAR ANALYSIS ===
+    === MISSION CRITICAL ===
+    Your goal is COMPLETE COVERAGE. Every single question found in the "RAW QUESTION POOL" must be accounted for. 
+    If a concept has been asked ONCE in the last 10 years, it MUST have a dedicated section in these notes. 
+    A student reading this should not need any other textbook to pass with a top grade.
+
+    === DATA SOURCE: PREVIOUS YEAR PAPERS ===
     
-    TOPIC WEIGHTAGE (Exam importance of each topic):
+    TOPIC WEIGHTAGE (Fundamental Importance):
     {json.dumps(topics, indent=2)}
     
-    MOST REPEATED QUESTIONS (These have appeared multiple times — CRITICAL to prepare):
+    MOST REPEATED QUESTIONS (High-frequency patterns):
     {json.dumps(repeated_summary, indent=2)}
     
-    ALL QUESTIONS FROM PREVIOUS YEARS (Grouped by year):
+    RAW QUESTION POOL (The source of truth - extract EVERY topic from here):
     {json.dumps(all_questions, indent=2)}
     
     === YOUR TASK ===
+    1. Scan every question in the RAW QUESTION POOL.
+    2. Group them into granular, logical topics.
+    3. For EACH topic, generate deep, exhaustive masterclass content.
     
-    Create a professional study guide with this EXACT JSON structure:
+    You MUST use this EXACT JSON structure. DO NOT CHANGE ANY KEYS.
     {{
       "studyNotes": [
         {{
-          "topicName": "Topic Name",
-          "importance": "HIGH",
-          "weightage": "25%",
-          "difficulty": "Moderate",
+          "topicName": "Granular Topic Title",
+          "importance": "HIGH/MEDIUM/LOW",
+          "weightage": "X%",
+          "difficulty": "Easy/Moderate/Hard",
           "keyConcepts": [
             {{
-              "concept": "Concept Name",
-              "explanation": "A clear, detailed 2-3 sentence explanation that a student can use directly in an exam answer. Include formulas or examples where relevant."
+              "concept": "Specific Detail/Sub-concept",
+              "explanation": "A high-density academic explanation (4-6 sentences). Must be a complete 'ready-to-memorize' node for the student."
             }}
           ],
           "definitions": [
-            "Term: A precise, exam-ready definition that can be written directly in an answer sheet."
+            "Term: A rigorous, formal definition that captures 100% of the marks."
           ],
           "modelAnswers": [
             {{
-              "question": "The exact frequently asked question",
-              "answer": "A complete, well-structured model answer (3-5 sentences) that would score full marks in an exam.",
+              "question": "Standard Exam Question Pattern",
+              "answer": "An exhaustive 'Model Answer' (5-8 sentences) formatted with logical points and deep technical insight.",
               "frequency": 3
             }}
           ],
           "examTips": [
-            "A specific, actionable tip for this topic"
+            "Expert advice on keywords and diagrams required for this topic."
           ],
           "commonMistakes": [
-            "A specific mistake students make on this topic"
+            "Conceptual errors that lead to marks being deducted."
           ],
-          "relatedTopics": ["Other Topic 1", "Other Topic 2"],
+          "relatedTopics": ["Related Topic A", "Related Topic B"],
           "studyPriority": 1
         }}
       ],
       "predictedQuestions": [
         {{
-          "question": "A question likely to appear in the next exam",
+          "question": "Highly probable future exam question",
           "confidence": "HIGH",
-          "reasoning": "Why this is predicted"
+          "reasoning": "Data-driven justification"
         }}
       ],
-      "quickRevisionSummary": "A detailed 3-4 paragraph night-before-exam revision guide."
+      "quickRevisionSummary": "A massive, high-impact 5-8 paragraph 'Expert Revision' guide that synthesizes the entire subject into a rapid-read format."
     }}
     
-    === QUALITY RULES ===
-    1. Order topics by studyPriority (1 = highest, based on weightage + repetition frequency).
-    2. HIGH importance = weightage >= 15% OR has 3+ repeated questions.
-    3. keyConcepts: Include 4-6 concepts per topic with detailed explanations.
-    4. definitions: Include 3-5 per topic (exam-ready, precise, quotable).
-    5. modelAnswers: Include 2-4 per topic with COMPLETE answers.
-    6. examTips: 2-3 specific, practical tips.
-    7. commonMistakes: 2-3 real mistakes students make.
-    8. relatedTopics: 1-3 connected topics.
-    9. predictedQuestions: Include 5-8 questions with HIGH/MEDIUM confidence.
-    10. quickRevisionSummary: Comprehensive last-minute revision guide.
+    === MASTERCLASS QUALITY RULES ===
+    1. EXHAUSTIVE TOPICS: Provide 12-25 granular topics/sub-topics. Do not skip any area mentioned in the questions.
+    2. 100% COVERAGE: Map every unique question from the raw question pool to a Masterclass Node.
+    3. ACADEMIC RIGOR: Use professional, technical language. No shallow summaries.
+    4. VOLUME: Each topic MUST have 6-10 'keyConcepts' and 5-8 'definitions'.
+    5. MODEL ANSWERS: Provide 4-6 deep model answers per topic, especially for the high-frequency/repeated questions.
+    6. PREDICTED QUESTIONS: Generate a robust list of 15-20 questions that haven't appeared recently but follow the exam DNA.
+    7. RANKING: studyPriority 1 = Top Priority (Weightage + Repetition).
     """
     
     return await _call_gemini_with_retry(model, prompt)
