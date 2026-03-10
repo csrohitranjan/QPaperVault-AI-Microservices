@@ -42,7 +42,7 @@ async def fetch_papers_by_code(paper_code: str, token: str = None) -> list[Paper
             fileUrl=paper["fileUrl"],
         )
         for paper in approved_papers
-        if paper["paperCode"].upper() == paper_code.upper()
+        if "".join(paper["paperCode"].split()).upper() == paper_code
     ]
 
     if not matching_papers:

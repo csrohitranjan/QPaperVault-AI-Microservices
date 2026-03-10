@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 
 # ──────────────────────────────────────────────
@@ -8,14 +8,29 @@ class RepeatedQuestionsRequest(BaseModel):
     """Request model for repeated questions."""
     paperCode: str = Field(..., description="Subject paper code, e.g. CSIT751")
 
+    @field_validator("paperCode")
+    @classmethod
+    def sanitize_paper_code(cls, v: str) -> str:
+        return "".join(v.split()).upper()
+
 class TopicAnalysisRequest(BaseModel):
     """Request model for topic weightage analysis."""
     paperCode: str = Field(..., description="Subject paper code, e.g. CSIT751")
+
+    @field_validator("paperCode")
+    @classmethod
+    def sanitize_paper_code(cls, v: str) -> str:
+        return "".join(v.split()).upper()
 
 class RevisionRankingRequest(BaseModel):
     """Request model for urgency-based revision ranking."""
     paperCode: str = Field(..., description="Subject paper code")
     availableHours: int = Field(4, description="Available study hours")
+
+    @field_validator("paperCode")
+    @classmethod
+    def sanitize_paper_code(cls, v: str) -> str:
+        return "".join(v.split()).upper()
 
 # ──────────────────────────────────────────────
 # Internal Models
@@ -110,6 +125,11 @@ class MockTestRequest(BaseModel):
     paperCode: str = Field(..., description="Subject paper code")
     totalMarks: int = Field(100, description="Target total marks")
 
+    @field_validator("paperCode")
+    @classmethod
+    def sanitize_paper_code(cls, v: str) -> str:
+        return "".join(v.split()).upper()
+
 class MockTestResponse(BaseModel):
     """Final response containing the full curated mock test."""
     status: int = 200
@@ -186,6 +206,11 @@ class TopicNote(BaseModel):
 class StudyNotesRequest(BaseModel):
     """Request for generating smart study notes."""
     paperCode: str = Field(..., description="Subject paper code")
+
+    @field_validator("paperCode")
+    @classmethod
+    def sanitize_paper_code(cls, v: str) -> str:
+        return "".join(v.split()).upper()
 
 class StudyNotesResponse(BaseModel):
     """Complete study guide response."""
